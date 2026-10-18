@@ -8,7 +8,12 @@ import { ApiError } from '../utils/errors.js';
 import { randomToken } from '../utils/crypto.js';
 
 export const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+} catch {
+  // Read-only filesystem (e.g. Vercel serverless) — local /uploads mode is
+  // unavailable there; configure Cloudinary for image uploads in production.
+}
 
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB

@@ -119,6 +119,25 @@ All endpoints are mounted under `/api`:
 - `/api/cart`, `/api/checkout`, `/api/orders`, `/api/account`, `/api/uploads` — authenticated commerce
 - `/api/admin/*` — admin-only management endpoints
 
+## Deploying to Vercel
+
+The repo is configured as a single Vercel project serving both apps:
+
+- `vercel.json` builds the `client/` (Vite) as static output and rewrites `/api/*` to the serverless function in `api/index.ts`, which delegates to `server/src/vercel.ts` (the Express app with a per-instance cached MongoDB connection).
+- The frontend calls same-origin `/api/*` — do **not** set `VITE_API_URL` on Vercel.
+
+Set these in Vercel → Project → Settings → Environment Variables:
+
+| Variable | Required | Notes |
+| -------- | -------- | ----- |
+| `MONGODB_URI` | yes | Must be a cloud database (Atlas free tier works) — Vercel cannot reach `localhost` |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | yes | The server refuses to start in production with the dev defaults; generate with `openssl rand -base64 32` |
+| `COOKIE_SECURE` | recommended | `true` — marks auth cookies `Secure`/`SameSite=None` for HTTPS |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | recommended | Image uploads cannot persist to Vercel's read-only filesystem without Cloudinary |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | optional | Payments stay disabled until set |
+
+Then import the GitHub repo at vercel.com/new and deploy — no extra build settings needed.
+
 ## License
 
 Private / UNLICENSED.
