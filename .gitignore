@@ -8,6 +8,9 @@ dist/
 build/
 coverage/
 *.tsbuildinfo
+# emitted by tsc -b when building vite.config.ts
+client/vite.config.js
+client/vite.config.d.ts
 
 # env — never commit secrets
 .env
