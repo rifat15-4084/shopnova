@@ -20,11 +20,15 @@ export const queryKeys = {
     detail: (id: string) => ['orders', 'detail', id] as const,
   },
   admin: {
-    stats: ['admin', 'stats'] as const,
+    stats: (days: number) => ['admin', 'stats', days] as const,
     products: (params: Record<string, unknown>) => ['admin', 'products', params] as const,
     orders: (params: Record<string, unknown>) => ['admin', 'orders', params] as const,
+    order: (id: string) => ['admin', 'orders', 'detail', id] as const,
     users: (params: Record<string, unknown>) => ['admin', 'users', params] as const,
-    coupons: ['admin', 'coupons'] as const,
-    reviews: ['admin', 'reviews'] as const,
+    customers: (params: Record<string, unknown>) => ['admin', 'customers', params] as const,
+    customer: (id: string) => ['admin', 'customers', 'detail', id] as const,
+    allCustomers: ['admin', 'customers'] as const,
+    coupons: () => ['admin', 'coupons'] as const,
+    reviews: (params: Record<string, unknown>) => ['admin', 'reviews', params] as const,
   },
 } as const;

@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useMemo } from 'react';
 
 export default function AdminReviewsPage() {
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const page = Number(params.get('page') ?? '1');
   const limit = Number(params.get('limit') ?? '20');
   const pending = params.get('pending') === 'true';
@@ -40,7 +40,7 @@ export default function AdminReviewsPage() {
       </div>
 
       <div className="space-y-3">
-        {data.items.map((r: any) => (
+        {data.items.map((r) => (
           <div key={r._id} className="rounded-xl border border-border bg-surface p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-1">
@@ -67,7 +67,7 @@ export default function AdminReviewsPage() {
                     Reject
                   </Button>
                 )}
-                <Button size="sm" variant="destructive" onClick={() => remove.mutate()}>
+                <Button size="sm" variant="danger" onClick={() => remove.mutate()}>
                   Delete
                 </Button>
               </div>

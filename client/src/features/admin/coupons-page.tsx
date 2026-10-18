@@ -1,9 +1,10 @@
-import { useAdminCoupons, useCreateCoupon, useDeleteCoupon, useUpdateCoupon } from '@/hooks/use-admin';
+import { useAdminCoupons, useCreateCoupon } from '@/hooks/use-admin';
 import { formatPrice } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/states';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import type { Coupon } from '@/types';
 
 export default function AdminCouponsPage() {
   const { data, isLoading, isError, refetch } = useAdminCoupons();
@@ -89,7 +90,7 @@ export default function AdminCouponsPage() {
   );
 }
 
-function CouponForm({ onSubmit, isLoading }: { onSubmit: (values: any) => void; isLoading: boolean }) {
+function CouponForm({ onSubmit, isLoading }: { onSubmit: (values: Partial<Coupon>) => void; isLoading: boolean }) {
   return (
     <form
       onSubmit={(e) => {
@@ -97,7 +98,7 @@ function CouponForm({ onSubmit, isLoading }: { onSubmit: (values: any) => void; 
         const formData = new FormData(e.currentTarget);
         onSubmit({
           code: String(formData.get('code') || '').toUpperCase(),
-          type: formData.get('type'),
+          type: String(formData.get('type')) as Coupon['type'],
           value: Number(formData.get('value')),
           minOrder: Number(formData.get('minOrder') || 0),
           usageLimit: Number(formData.get('usageLimit') || 0),

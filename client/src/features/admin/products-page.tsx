@@ -94,7 +94,7 @@ export default function AdminProductsPage() {
         </table>
       </div>
 
-      <Pagination page={data.page} pages={data.pages} onPageChange={(p) => setParams({ page: String(p), limit: String(limit), q })} />
+      <Pagination page={data.page} totalPages={data.pages} onPageChange={(p) => setParams({ page: String(p), limit: String(limit), q })} />
     </div>
   );
 }

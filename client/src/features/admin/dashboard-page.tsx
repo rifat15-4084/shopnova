@@ -1,7 +1,6 @@
 import { useAdminStats } from '@/hooks/use-admin-stats';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { formatPrice, getOrderStatusMeta } from '@/lib/utils';
-import { Container } from '@/components/layout/container';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/states';
 import {

@@ -1,7 +1,7 @@
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Container } from '@/components/layout/container';
 import { cn } from '@/lib/utils';
-import { BarChart3, Coupon, LayoutDashboard, Package, ShoppingCart, Star, Users } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Star, Ticket, Users } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 
 const links = [
@@ -9,7 +9,7 @@ const links = [
   { to: '/admin/products', label: 'Products', icon: Package, end: false },
   { to: '/admin/orders', label: 'Orders', icon: ShoppingCart, end: false },
   { to: '/admin/customers', label: 'Customers', icon: Users, end: false },
-  { to: '/admin/coupons', label: 'Coupons', icon: Coupon, end: false },
+  { to: '/admin/coupons', label: 'Coupons', icon: Ticket, end: false },
   { to: '/admin/reviews', label: 'Reviews', icon: Star, end: false },
 ];
 

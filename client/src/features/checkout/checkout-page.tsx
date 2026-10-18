@@ -8,7 +8,6 @@ import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Container } from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyState } from '@/components/ui/states';
 import { toast } from '@/components/ui/toast-store';
 import { AddressForm } from '@/features/account/address-form';
 import { cn } from '@/lib/utils';

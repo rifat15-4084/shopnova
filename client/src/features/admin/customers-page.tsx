@@ -52,7 +52,7 @@ export default function AdminCustomersPage() {
           </thead>
           <tbody>
             {data.items.map((c) => (
-              <tr key={c._id} className="border-b border-border/80 last:border-0">
+              <tr key={c.id} className="border-b border-border/80 last:border-0">
                 <td className="p-3 font-medium text-foreground">{c.name}</td>
                 <td className="p-3 text-foreground">{c.email}</td>
                 <td className="p-3 capitalize text-foreground">{c.role}</td>
@@ -73,7 +73,7 @@ export default function AdminCustomersPage() {
         </table>
       </div>
 
-      <Pagination page={data.page} pages={data.pages} onPageChange={(p) => setParams({ page: String(p), limit: String(limit), q })} />
+      <Pagination page={data.page} totalPages={data.pages} onPageChange={(p) => setParams({ page: String(p), limit: String(limit), q })} />
     </div>
   );
 }

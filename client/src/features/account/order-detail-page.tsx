@@ -1,4 +1,4 @@
-import { useCancelOrder, useOrder, paymentMethodLabel } from '@/hooks/use-orders';
+import { useCancelOrder, useOrder, paymentMethodLabel as methodLabel } from '@/hooks/use-orders';
 import { formatDateTime, formatPrice, getOrderStatusMeta, cn } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Button } from '@/components/ui/button';
