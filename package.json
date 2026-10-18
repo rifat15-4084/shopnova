@@ -1,0 +1,60 @@
+{
+  "name": "shopnova",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ShopNova - a production-quality MERN e-commerce platform",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "dev:server": "npm run dev --workspace server",
+    "dev:client": "npm run dev --workspace client",
+    "build": "npm run build --workspace server && npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "seed": "npm run seed --workspace server",
+    "reseed": "npm run reseed --workspace server",
+    "test": "npm run test --workspace server && npm run test --workspace client",
+    "test:server": "npm run test --workspace server",
+    "test:client": "npm run test --workspace client",
+    "test:e2e": "playwright test",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md,yml}\"",
+    "typecheck": "npm run typecheck --workspace server && npm run typecheck --workspace client",
+    "prepare": "husky || exit 0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,css,md,yml}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true,
+    "sharp@0.33.5": true,
+    "mongodb-memory-server@10.4.3": true,
+    "@scarf/scarf@1.4.0": true
+  }
+}

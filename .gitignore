@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# env — never commit secrets
+.env
+.env.*
+!.env.example
+!client/.env.example
+!server/.env.example
+
+# uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pino-*.log
+
+# test artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+server/coverage/
+client/coverage/
+
+# editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
