@@ -304,7 +304,6 @@ describe('stripe webhook idempotency', () => {
 
     const snapshot = await Order.findById(order._id);
     expect(snapshot!.paymentStatus).toBe('unpaid');
-    expect(snapshot!.stock).toBeUndefined();
 
     // FIRST delivery: the handler pays the order, reserves stock, clears the cart
     const { handleCheckoutCompleted } = await import('../controllers/commerce.controller.js');

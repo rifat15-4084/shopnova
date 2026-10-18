@@ -51,10 +51,11 @@
     "node": ">=20"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true,
-    "esbuild@0.21.5": true,
     "sharp@0.33.5": true,
     "mongodb-memory-server@10.4.3": true,
-    "@scarf/scarf@1.4.0": true
+    "@scarf/scarf@1.4.0": true,
+    "esbuild@0.21.5": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true
   }
 }
