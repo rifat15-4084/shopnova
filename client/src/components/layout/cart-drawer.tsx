@@ -1,5 +1,5 @@
 import { useCart, useCheckoutConfig } from '@/hooks/use-cart';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Drawer } from '@/components/ui/drawer';
 import { QuantityStepper } from '@/components/ui/quantity-stepper';
@@ -53,8 +53,9 @@ export function CartDrawer() {
                     aria-label={item.title}
                   >
                     <img
-                      src={item.image}
+                      src={imageUrl(item.image)}
                       alt=""
+                      onError={onImgError}
                       className="h-20 w-20 rounded-lg border border-border object-cover"
                       loading="lazy"
                     />

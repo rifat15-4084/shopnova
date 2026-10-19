@@ -21,7 +21,248 @@ import { Coupon } from '../models/Coupon.js';
 import { Cart } from '../models/Cart.js';
 import { slugify } from '../utils/slugify.js';
 
-const img = (seed: string, w = 800, h = 800) => `https://picsum.photos/seed/${seed}/${w}/${h}`;
+const unsplash = (photoId: string, w = 800, h = 800) =>
+  `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
+
+/**
+ * Curated, verified Unsplash photo IDs per slug (categories start with cat-).
+ * URLs were HTTP-checked before being added; every product gets a usable image.
+ */
+const PHOTOS: Record<string, string[]> = {
+  // Categories
+  'cat-electronics': ['photo-1498049794561-7780e7231661'],
+  'cat-fashion': ['photo-1441986300917-64674bd600d8'],
+  'cat-home': ['photo-1586023492125-27b2c045efd7'],
+  'cat-beauty': ['photo-1596462502278-27bfdc403348'],
+  'cat-sports': ['photo-1517649763962-0c623066013b'],
+  'cat-books': ['photo-1524995997946-a1c2e315a42f'],
+  'cat-grocery': ['photo-1542838132-92c53300491e'],
+  'cat-toys': ['photo-1558060370-d644479cb6f7'],
+
+  // Electronics
+  'aurora-wireless-headphones': [
+    'photo-1505740420928-5e560c06d30e',
+    'photo-1484704849700-f032a568e944',
+    'photo-1546435770-a3e426bf472b',
+  ],
+  'pulse-smartwatch': [
+    'photo-1546868871-7041f2a55e12',
+    'photo-1523275335684-37898b6baf30',
+    'photo-1579586337278-3befd40fd17a',
+  ],
+  'nimbus-mechanical-keyboard': [
+    'photo-1587829741301-dc798b83add3',
+    'photo-1527864550417-7fd91fc51a46',
+    'photo-1541140532154-b024d705b90a',
+  ],
+  'echo-beam-bluetooth-speaker': [
+    'photo-1608043152269-423dbba4e7e1',
+    'photo-1589003077984-894e133dabab',
+    'photo-1545454675-3531b543be5d',
+  ],
+  'lumen-4k-action-camera': [
+    'photo-1526170375885-4d8ecf77b99f',
+    'photo-1502920917128-1aa500764cbd',
+    'photo-1452780212940-6f5c0d14d848',
+  ],
+  'drift-noise-cancelling-earbuds': [
+    'photo-1590658268037-6bf12165a8df',
+    'photo-1545127398-14699f92334b',
+    'photo-1434493789847-2f02dc6ca35d',
+  ],
+  'vertex-100w-gan-charger': [
+    'photo-1583863788434-e58a36330cf0',
+    'photo-1601524909162-ae8725290836',
+  ],
+  'halo-smart-bulb-4-pack': [
+    'photo-1550985616-10810253b84d',
+    'photo-1565814329452-e1efa11c5b89',
+  ],
+
+  // Fashion
+  'everyday-oxford-shirt': [
+    'photo-1596755094514-f87e34085b2c',
+    'photo-1602810318383-e386cc2a3ccf',
+    'photo-1598033129183-c4f50c736f10',
+  ],
+  'trail-utility-jacket': [
+    'photo-1551028719-00167b16eac5',
+    'photo-1591047139829-d91aecb6caea',
+  ],
+  'soft-knit-crew-sweater': [
+    'photo-1576871337622-98d48d1cf531',
+    'photo-1620799140408-edc6dcb6d633',
+    'photo-1434389677669-e08b4cac3105',
+  ],
+  'canvas-weekender-bag': [
+    'photo-1547949003-9792a18a2601',
+    'photo-1590874103328-eac38a683ce7',
+    'photo-1548036328-c9fa89d128fa',
+  ],
+  'classic-denim-jeans': [
+    'photo-1542272604-787c3835535d',
+    'photo-1541099649105-f69ad21f3246',
+  ],
+  'knit-sneakers': [
+    'photo-1600269452121-4f2416e55c28',
+    'photo-1595950653106-6c9ebd614d3a',
+    'photo-1606107557195-0e29a4b5b4aa',
+  ],
+  'linen-summer-dress': [
+    'photo-1595777457583-95e059d581b8',
+    'photo-1572804013309-59a88b7e92f1',
+    'photo-1566174053879-31528523f8ae',
+  ],
+  'leather-card-holder': [
+    'photo-1627123424574-724758594e93',
+    'photo-1606503825008-909a67e63c3d',
+  ],
+
+  // Home
+  'ceramic-pour-over-set': [
+    'photo-1495474472287-4d71bcdd2085',
+    'photo-1509042239860-f550ce710b93',
+    'photo-1442512595331-e89e73853f31',
+  ],
+  'linen-duvet-set': [
+    'photo-1522771739844-6a9f6d5f14af',
+    'photo-1505693416388-ac5ce068fe85',
+    'photo-1540518614846-7eded433c457',
+  ],
+  'arc-floor-lamp': ['photo-1507473885765-e6ed057f782c'],
+  'cast-iron-skillet-26cm': [
+    'photo-1544025162-d76694265947',
+    'photo-1590794056226-79ef3a8147e1',
+    'photo-1585515320310-259814833e62',
+  ],
+  'woven-storage-basket-set': [
+    'photo-1594026112284-02bb6f3352fe',
+    'photo-1524758631624-e2822e304c36',
+  ],
+  'aroma-diffuser': [
+    'photo-1608571423902-eed4a5ad8108',
+    'photo-1544161515-4ab6ce6db874',
+  ],
+  'memory-foam-pillow-2-pack': [
+    'photo-1584100936595-c0654b55a2e2',
+    'photo-1522771739844-6a9f6d5f14af',
+  ],
+  'marble-serving-board': [
+    'photo-1578985545062-69928b1d9587',
+    'photo-1594221708779-94832f4320d1',
+  ],
+
+  // Beauty
+  'vitamin-c-serum-30ml': [
+    'photo-1620916566398-39f1143ab7be',
+    'photo-1556228720-195a672e8a03',
+    'photo-1571781926291-c477ebfd024b',
+  ],
+  'ceramide-daily-moisturizer': [
+    'photo-1556228578-8c89e6adf883',
+    'photo-1556228720-195a672e8a03',
+  ],
+  'bamboo-toothbrush-set': ['photo-1607613009820-a29f7bb81c04'],
+  'argan-hair-oil': [
+    'photo-1608248543803-ba4f8c70ae0b',
+    'photo-1598440947619-2c35fc9aa908',
+  ],
+  'charcoal-face-wash': [
+    'photo-1585232004423-244e0e6904e3',
+    'photo-1571781926291-c477ebfd024b',
+  ],
+  'himalayan-bath-salts-1kg': [
+    'photo-1570172619644-dfd03ed5d881',
+    'photo-1544161515-4ab6ce6db874',
+  ],
+
+  // Sports
+  'trail-running-shoes': [
+    'photo-1542291026-7eec264c27ff',
+    'photo-1606107557195-0e29a4b5b4aa',
+  ],
+  'carbon-frame-water-bottle': [
+    'photo-1523362628745-0c100150b504',
+    'photo-1602143407151-7111542de6e8',
+  ],
+  'compact-camping-tent-2p': [
+    'photo-1504280390367-361c6d9f38f4',
+    'photo-1478131143081-80f7f84ca84d',
+  ],
+  'adjustable-dumbbell-pair': [
+    'photo-1517836357463-d25dfeac3438',
+    'photo-1571019613454-1cb2f99b2d8b',
+  ],
+  'yoga-mat-6mm': [
+    'photo-1544367567-0f2fcb009e0b',
+    'photo-1592432678016-e910b452f9a2',
+  ],
+  'insulated-hiking-backpack-35l': [
+    'photo-1553062407-98eeb64c6a62',
+    'photo-1622260614153-03223fb72052',
+  ],
+
+  // Books
+  'hardcover-dot-grid-journal': [
+    'photo-1531346878377-a5be20888e57',
+    'photo-1517842645767-c639042777db',
+  ],
+  'fountain-pen-starter-kit': [
+    'photo-1455390582262-044cdead277a',
+    'photo-1583485088034-697b5bc54ccd',
+  ],
+  'the-art-of-focus-paperback': [
+    'photo-1544947950-fa07a98d237f',
+    'photo-1512820790803-83ca734da794',
+  ],
+  'origami-paper-pack-500-sheets': ['photo-1565193566173-7a0ee3dbe261'],
+
+  // Grocery
+  'single-origin-coffee-beans-1kg': [
+    'photo-1447933601403-0c6688de566e',
+    'photo-1559056199-641a0ac8b55e',
+    'photo-1514432324607-a09d9b4aefdd',
+  ],
+  'raw-wildflower-honey-500g': [
+    'photo-1587049352846-4a222e784d38',
+    'photo-1558642452-9d2a7deb7f62',
+  ],
+  'cold-pressed-mustard-oil-1l': [
+    'photo-1474979266404-7eaacbcd87c5',
+    'photo-1620706857370-e1b9770e8bb1',
+  ],
+  'assam-tea-tin-400g': [
+    'photo-1544787219-7f47ccb76574',
+    'photo-1564890369478-c89ca6d9cde9',
+  ],
+
+  // Toys
+  'wooden-building-blocks-100pc': [
+    'photo-1558060370-d644479cb6f7',
+    'photo-1587654780291-39c9404d746b',
+  ],
+  'strategy-board-game-tides': [
+    'photo-1611996575749-79a3a250f948',
+    'photo-1606092195730-5d7b9af1efc5',
+  ],
+  'remote-control-buggy': [
+    'photo-1594787318286-3d835c1d207f',
+    'photo-1581235720704-06d3acfcb36f',
+  ],
+  'plush-teddy-bear-45cm': ['photo-1559454403-b8fb88521f11'],
+};
+
+/** First curated photo for a slug (used for category images). */
+const img = (slug: string, w = 800, h = 800): string => {
+  const photos = PHOTOS[slug];
+  if (!photos?.length) throw new Error(`No curated photo for "${slug}"`);
+  return unsplash(photos[0], w, h);
+};
+
+const productImages = (slug: string, categorySlug: string): string[] => {
+  const photos = PHOTOS[slug] ?? PHOTOS[`cat-${categorySlug}`] ?? [];
+  return photos.map((id) => unsplash(id));
+};
 
 interface SeedProduct {
   title: string;
@@ -242,7 +483,6 @@ async function seed() {
   const productDocs: any[] = [];
 
   for (const [i, p] of PRODUCTS.entries()) {
-    const seedKey = `sn-${slugify(p.title)}`;
     const slug = slugify(p.title);
     const category = categoryDocs.get(p.category);
     if (!category) throw new Error(`Unknown category: ${p.category}`);
@@ -267,7 +507,7 @@ async function seed() {
           sku: `SKU-${String(i + 1).padStart(4, '0')}`,
           price: p.price,
           compareAtPrice: p.compareAtPrice ?? 0,
-          images: [img(seedKey), img(`${seedKey}-2`), img(`${seedKey}-3`)],
+          images: productImages(slug, p.category),
           category: category._id,
           stock: p.stock,
           variants,

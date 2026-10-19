@@ -1,7 +1,7 @@
 import { useCart, useCheckoutConfig, useCheckoutPreview, useValidateCoupon } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { getApiErrorMessage } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Container } from '@/components/layout/container';
@@ -105,8 +105,9 @@ export default function CartPage() {
                 <li key={key} className="flex gap-4 p-4">
                   <Link to={`/products/${item.slug}`} className="shrink-0" aria-label={item.title}>
                     <img
-                      src={item.image}
+                      src={imageUrl(item.image)}
                       alt=""
+                      onError={onImgError}
                       className="h-20 w-20 rounded-lg border border-border object-cover sm:h-24 sm:w-24"
                       loading="lazy"
                     />

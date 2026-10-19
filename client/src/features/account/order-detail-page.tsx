@@ -1,5 +1,5 @@
 import { useCancelOrder, useOrder, paymentMethodLabel as methodLabel } from '@/hooks/use-orders';
-import { formatDateTime, formatPrice, getOrderStatusMeta, cn } from '@/lib/utils';
+import { formatDateTime, formatPrice, getOrderStatusMeta, cn, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,8 +59,9 @@ export default function OrderDetailPage() {
               {order.items.map((item) => (
                 <li key={`${item.product}::${item.variantId ?? ''}`} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                   <img
-                    src={item.image}
+                    src={imageUrl(item.image)}
                     alt=""
+                    onError={onImgError}
                     className="h-16 w-16 shrink-0 rounded-lg border border-border object-cover"
                     loading="lazy"
                   />

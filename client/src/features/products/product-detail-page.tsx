@@ -15,7 +15,7 @@ import { EmptyState, ErrorState } from '@/components/ui/states';
 import { Textarea } from '@/components/ui/form-fields';
 import { toast } from '@/components/ui/toast-store';
 import { useCurrencyStore } from '@/stores/currency.store';
-import { formatDate, formatPrice } from '@/lib/utils';
+import { formatDate, formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Heart, Leaf, ShieldCheck, ShoppingCart, Truck } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -149,7 +149,13 @@ export default function ProductDetailPage() {
                     i === activeImage ? 'border-accent' : 'border-border hover:border-accent/40'
                   )}
                 >
-                  <img src={img} alt="" className="h-full w-full object-cover" loading="lazy" />
+                  <img
+                    src={imageUrl(img)}
+                    alt=""
+                    onError={onImgError}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
                 </button>
               ))}
             </div>

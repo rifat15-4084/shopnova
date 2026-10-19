@@ -1,7 +1,7 @@
 import { useCart, useCheckoutConfig, useCheckoutPreview } from '@/hooks/use-cart';
 import { useAddresses, usePlaceOrder, useSaveAddress, useStripeCheckout, paymentMethodLabel } from '@/hooks/use-orders';
 import { getApiErrorMessage, getValidationErrors } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
@@ -266,8 +266,9 @@ export default function CheckoutPage() {
                   {preview.items.map((item) => (
                     <li key={`${item.product}::${item.variantId ?? ''}`} className="flex gap-3">
                       <img
-                        src={item.image}
+                        src={imageUrl(item.image)}
                         alt=""
+                        onError={onImgError}
                         className="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
                         loading="lazy"
                       />

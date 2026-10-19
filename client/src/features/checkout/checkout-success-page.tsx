@@ -1,5 +1,5 @@
 import { useOrderByNumber } from '@/hooks/use-orders';
-import { formatPrice, getOrderStatusMeta } from '@/lib/utils';
+import { formatPrice, getOrderStatusMeta, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Container } from '@/components/layout/container';
 import { Badge } from '@/components/ui/badge';
@@ -67,8 +67,9 @@ export default function CheckoutSuccessPage() {
                 {order.items.map((item) => (
                   <li key={`${item.product}::${item.variantId ?? ''}`} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                     <img
-                      src={item.image}
+                      src={imageUrl(item.image)}
                       alt=""
+                      onError={onImgError}
                       className="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
                       loading="lazy"
                     />

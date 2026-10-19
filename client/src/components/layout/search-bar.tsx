@@ -1,6 +1,6 @@
 import { useProducts } from '@/hooks/use-products';
 import { useDebounce } from '@/hooks/use-debounce';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Loader2, Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -94,8 +94,9 @@ export function SearchBar({ autoFocus, onNavigate, className }: SearchBarProps) 
                     className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors duration-150 ease-nova hover:bg-accent/5"
                   >
                     <img
-                      src={p.images[0]}
+                      src={imageUrl(p.images[0])}
                       alt=""
+                      onError={onImgError}
                       className="h-10 w-10 shrink-0 rounded-lg object-cover"
                       loading="lazy"
                     />

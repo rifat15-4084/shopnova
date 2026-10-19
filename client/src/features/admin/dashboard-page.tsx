@@ -1,6 +1,6 @@
 import { useAdminStats } from '@/hooks/use-admin-stats';
 import { useCurrencyStore } from '@/stores/currency.store';
-import { formatPrice, getOrderStatusMeta } from '@/lib/utils';
+import { formatPrice, getOrderStatusMeta, imageUrl, onImgError } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/states';
 import {
@@ -168,8 +168,9 @@ export default function AdminDashboardPage() {
             {stats.topProducts.map((p) => (
               <div key={p.productId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                 <img
-                  src={p.image}
+                  src={imageUrl(p.image)}
                   alt=""
+                  onError={onImgError}
                   className="h-12 w-12 rounded-lg border border-border object-cover"
                   loading="lazy"
                 />
@@ -197,8 +198,9 @@ export default function AdminDashboardPage() {
               stats.lowStock.map((p) => (
                 <div key={p.productId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                   <img
-                    src={p.image}
+                    src={imageUrl(p.image)}
                     alt=""
+                    onError={onImgError}
                     className="h-12 w-12 rounded-lg border border-border object-cover"
                     loading="lazy"
                   />

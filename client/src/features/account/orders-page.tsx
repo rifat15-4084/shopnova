@@ -1,5 +1,5 @@
 import { useCancelOrder, useOrders } from '@/hooks/use-orders';
-import { formatDate, formatPrice, getOrderStatusMeta } from '@/lib/utils';
+import { formatDate, formatPrice, getOrderStatusMeta, imageUrl, onImgError } from '@/lib/utils';
 import { useCurrencyStore } from '@/stores/currency.store';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -94,8 +94,9 @@ export default function OrdersPage() {
                   {order.items.slice(0, 4).map((item) => (
                     <li key={`${item.product}::${item.variantId ?? ''}`} className="shrink-0">
                       <img
-                        src={item.image}
+                        src={imageUrl(item.image)}
                         alt={item.title}
+                        onError={onImgError}
                         className="h-14 w-14 rounded-lg border border-border object-cover"
                         loading="lazy"
                       />

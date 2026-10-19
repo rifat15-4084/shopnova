@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn, imageUrl } from '@/lib/utils';
 import { ImageOff } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,8 +16,9 @@ interface LazyImageProps {
 export function LazyImage({ src, alt, className, imgClassName, eager }: LazyImageProps) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const resolvedSrc = imageUrl(src);
 
-  if (!src || failed) {
+  if (!resolvedSrc || failed) {
     return (
       <div
         className={cn(
@@ -35,7 +36,7 @@ export function LazyImage({ src, alt, className, imgClassName, eager }: LazyImag
   return (
     <div className={cn('relative overflow-hidden', !loaded && 'skeleton', className)}>
       <img
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"

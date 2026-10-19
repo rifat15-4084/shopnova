@@ -1,6 +1,6 @@
 import { useAdminProducts } from '@/hooks/use-admin';
 import { useCurrencyStore } from '@/stores/currency.store';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, imageUrl, onImgError } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/states';
 import { Pagination } from '@/components/ui/pagination';
@@ -57,8 +57,9 @@ export default function AdminProductsPage() {
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <img
-                      src={p.images?.[0]}
+                      src={imageUrl(p.images?.[0])}
                       alt=""
+                      onError={onImgError}
                       className="h-12 w-12 rounded-lg border border-border object-cover"
                       loading="lazy"
                     />

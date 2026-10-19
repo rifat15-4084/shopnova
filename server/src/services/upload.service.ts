@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import sharp from 'sharp';
-import { env } from '../config/env.js';
 import { cloudinary, cloudinaryEnabled } from '../config/cloudinary.js';
 import { ApiError } from '../utils/errors.js';
 import { randomToken } from '../utils/crypto.js';
@@ -73,5 +72,9 @@ export async function storeImage(file: Express.Multer.File): Promise<UploadedIma
   const filename = `${Date.now()}-${randomToken(6)}.webp`;
   const fullPath = path.join(UPLOAD_DIR, filename);
   await fs.promises.writeFile(fullPath, buffer);
-  return { url: `${env.API_URL}/uploads/${filename}`, width, height };
+  // Store a relative path unless API_URL is explicitly configured, so uploads
+  // work behind any host/proxy (Vite dev proxy, Vercel rewrite, Render) without
+  // ever baking http://localhost:5000 into the database.
+  const apiBase = (process.env.API_URL ?? '').replace(/\/+$/, '');
+  return { url: `${apiBase}/uploads/${filename}`, width, height };
 }
