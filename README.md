@@ -70,7 +70,7 @@ npm run dev
 
 | Variable | Required | Notes |
 | -------- | -------- | ----- |
-| `MONGODB_URI` | yes | e.g. `mongodb://127.0.0.1:27017/shopnova` |
+| `MONGODB_URI` | yes | MongoDB Atlas SRV string — keep the real value only in `server/.env`, never in tracked files |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | yes (prod) | dev defaults exist; generate with `openssl rand -base64 32` |
 | `CLIENT_URL` | yes (prod) | Comma-separated allowed CORS origins; wildcards OK, e.g. `http://localhost:5173,https://shop-nava.vercel.app,https://*.vercel.app` |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | for payments | test keys from the Stripe dashboard |

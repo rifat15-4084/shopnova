@@ -24,6 +24,7 @@ import { Coupon } from '../models/Coupon.js';
 import { Cart } from '../models/Cart.js';
 import { Order } from '../models/Order.js';
 import { slugify } from '../utils/slugify.js';
+import { scrubMongoUri } from '../utils/sanitize.js';
 
 const unsplash = (photoId: string, w = 800, h = 800) =>
   `https://images.unsplash.com/${photoId}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
@@ -418,6 +419,7 @@ async function seed() {
     logger.info(`Seed target: ${dbTarget(uri)}`);
     await connectDB(uri);
   } else {
+    logger.info(`Seed target: ${dbTarget(env.MONGODB_URI)}`);
     await connectDB(env.MONGODB_URI);
   }
 
@@ -649,7 +651,9 @@ async function seed() {
   await disconnectDB();
 }
 
-seed().catch((err) => {
-  console.error('Seed failed:', err);
+seed().catch((err: unknown) => {
+  // Never let a driver error echo the connection string: scrub credentials.
+  const detail = err instanceof Error ? (err.stack ?? `${err.name}: ${err.message}`) : String(err);
+  console.error('Seed failed:', scrubMongoUri(detail));
   process.exit(1);
 });
