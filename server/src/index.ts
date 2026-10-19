@@ -13,8 +13,8 @@ async function main() {
   const server = http.createServer(app);
 
   server.listen(env.PORT, () => {
-    logger.info(`🚀 ShopNova API listening on http://localhost:${env.PORT}`);
-    logger.info(`📚 API docs: http://localhost:${env.PORT}/api/docs`);
+    logger.info(`🚀 ShopNova API listening on ${env.API_URL} (port ${env.PORT})`);
+    logger.info(`📚 API docs: ${env.API_URL}/api/docs`);
     logger.info(`Environment: ${env.NODE_ENV}`);
   });
 

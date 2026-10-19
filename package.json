@@ -14,6 +14,7 @@
     "build": "npm run build --workspace server && npm run build --workspace client",
     "start": "npm run start --workspace server",
     "seed": "npm run seed --workspace server",
+    "seed:prod": "npm run seed:prod --workspace server --",
     "reseed": "npm run reseed --workspace server",
     "test": "npm run test --workspace server && npm run test --workspace client",
     "test:server": "npm run test --workspace server",

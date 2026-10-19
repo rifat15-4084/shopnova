@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import sharp from 'sharp';
+import { isProd } from '../config/env.js';
 import { cloudinary, cloudinaryEnabled } from '../config/cloudinary.js';
 import { ApiError } from '../utils/errors.js';
 import { randomToken } from '../utils/crypto.js';
@@ -67,6 +68,17 @@ export async function storeImage(file: Express.Multer.File): Promise<UploadedIma
       stream.end(buffer);
     });
     return { url: result.secure_url, publicId: result.public_id, width, height };
+  }
+
+  if (isProd) {
+    // Deployed hosts (Vercel/Render) have ephemeral or read-only filesystems —
+    // writing locally would produce broken image URLs, so production requires
+    // Cloudinary and fails fast with an actionable message instead.
+    throw new ApiError(
+      503,
+      'Image storage is not configured on this server. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET.',
+      'STORAGE_NOT_CONFIGURED',
+    );
   }
 
   const filename = `${Date.now()}-${randomToken(6)}.webp`;

@@ -4,6 +4,7 @@ import { ProductGrid } from '@/features/products/product-grid';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LazyImage } from '@/components/ui/lazy-image';
+import { EmptyState, ErrorState } from '@/components/ui/states';
 import { motion } from 'framer-motion';
 import { ArrowRight, Headphones, RefreshCw, ShieldCheck, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -16,10 +17,30 @@ const fadeUp = {
 };
 
 export default function HomePage() {
-  const { data: featured, isLoading: featuredLoading } = useFeaturedProducts();
-  const { data: newest, isLoading: newestLoading } = useProducts({ limit: 8, sort: 'newest' });
-  const { data: dealSource, isLoading: dealsLoading } = useProducts({ limit: 24, sort: 'popular', inStock: true });
-  const { data: categories, isLoading: categoriesLoading } = useCategories();
+  const {
+    data: featured,
+    isLoading: featuredLoading,
+    isError: featuredError,
+    refetch: refetchFeatured,
+  } = useFeaturedProducts();
+  const {
+    data: newest,
+    isLoading: newestLoading,
+    isError: newestError,
+    refetch: refetchNewest,
+  } = useProducts({ limit: 8, sort: 'newest' });
+  const {
+    data: dealSource,
+    isLoading: dealsLoading,
+    isError: dealsError,
+    refetch: refetchDeals,
+  } = useProducts({ limit: 24, sort: 'popular', inStock: true });
+  const {
+    data: categories,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    refetch: refetchCategories,
+  } = useCategories();
 
   const deals = (dealSource?.items ?? [])
     .filter((p) => p.compareAtPrice > p.price)
@@ -102,12 +123,19 @@ export default function HomePage() {
       <section className="py-12 sm:py-16">
         <Container>
           <SectionHeading title="Shop by category" to="/categories" />
-          {categoriesLoading ? (
+          {categoriesError ? (
+            <ErrorState title="Couldn't load categories" onRetry={() => refetchCategories()} />
+          ) : categoriesLoading ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="skeleton aspect-[4/3] rounded-2xl" />
               ))}
             </div>
+          ) : categories && categories.length === 0 ? (
+            <EmptyState
+              title="No products yet"
+              description="This store's catalogue is empty — check back soon."
+            />
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
               {categories?.slice(0, 8).map((category, i) => (
@@ -137,7 +165,11 @@ export default function HomePage() {
       <section className="py-12 sm:py-16">
         <Container>
           <SectionHeading title="Featured picks" subtitle="Hand-picked by our team this week" to="/products?featured=true" />
-          <ProductGrid products={featured?.items} loading={featuredLoading} />
+          {featuredError ? (
+            <ErrorState title="Couldn't load featured products" onRetry={() => refetchFeatured()} />
+          ) : (
+            <ProductGrid products={featured?.items} loading={featuredLoading} />
+          )}
         </Container>
       </section>
 
@@ -145,7 +177,11 @@ export default function HomePage() {
       <section className="bg-surface py-12 sm:py-16">
         <Container>
           <SectionHeading title="Today's deals" subtitle="Limited-time discounts — while stocks last" to="/deals" />
-          <ProductGrid products={deals} loading={dealsLoading} />
+          {dealsError ? (
+            <ErrorState title="Couldn't load deals" onRetry={() => refetchDeals()} />
+          ) : (
+            <ProductGrid products={deals} loading={dealsLoading} />
+          )}
         </Container>
       </section>
 
@@ -153,7 +189,11 @@ export default function HomePage() {
       <section className="py-12 sm:py-16">
         <Container>
           <SectionHeading title="New arrivals" subtitle="Fresh stock, just landed" to="/products?sort=newest" />
-          <ProductGrid products={newest?.items} loading={newestLoading} />
+          {newestError ? (
+            <ErrorState title="Couldn't load new arrivals" onRetry={() => refetchNewest()} />
+          ) : (
+            <ProductGrid products={newest?.items} loading={newestLoading} />
+          )}
         </Container>
       </section>
 

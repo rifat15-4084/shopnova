@@ -1,10 +1,11 @@
-import path from 'path';
+import type { Request, Response } from 'express';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import mongoSanitize from 'express-mongo-sanitize';
+import mongoose from 'mongoose';
 import pinoHttp from 'pino-http';
 
 import { env, isProd } from './config/env.js';
@@ -12,8 +13,21 @@ import { logger } from './config/logger.js';
 import { generalLimiter } from './middleware/rateLimit.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { UPLOAD_DIR } from './services/upload.service.js';
+import { Product } from './models/Product.js';
 import routes from './routes/index.js';
 import { openApiSpec, swaggerUi } from './docs/swagger.js';
+
+/**
+ * Turn a CLIENT_URL entry into a matcher: `*` matches any characters, so
+ * `https://*.vercel.app` also allows preview deployments.
+ */
+function originPattern(pattern: string): RegExp {
+  const escaped = pattern
+    .split('*')
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('.*');
+  return new RegExp(`^${escaped}$`);
+}
 
 export function createApp() {
   const app = express();
@@ -43,15 +57,22 @@ export function createApp() {
     }),
   );
 
-  // CORS — explicit allow-list from env
+  // CORS — explicit allow-list from CLIENT_URL (comma-separated; `*` wildcards
+  // allowed, e.g. https://shop-nava.vercel.app,https://*.vercel.app)
   const allowedOrigins = env.CLIENT_URL.split(',')
     .map((s) => s.trim().replace(/\/$/, ''))
     .filter(Boolean);
+  const originMatchers = allowedOrigins.map(originPattern);
+  if (isProd && allowedOrigins.every((o) => /localhost|127\.0\.0\.1/.test(o))) {
+    logger.warn(
+      'CLIENT_URL only contains localhost origins — CORS will block your deployed frontend. Set CLIENT_URL to your production origin(s).',
+    );
+  }
   app.use(
     cors({
       origin(origin, callback) {
         // non-browser clients (curl, server-to-server) and same-origin
-        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        if (!origin || originMatchers.some((re) => re.test(origin))) {
           return callback(null, true);
         }
         logger.warn({ origin }, 'Blocked by CORS');
@@ -97,13 +118,30 @@ export function createApp() {
   // API docs
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
-  // Health + readiness
-  app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), ts: new Date().toISOString() });
-  });
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', uptime: process.uptime(), ts: new Date().toISOString() });
-  });
+  // Health + readiness — DB state and catalogue size for quick production checks.
+  // 200 when the database is reachable, 503 otherwise (usable as a PaaS probe).
+  const health = async (_req: Request, res: Response) => {
+    const state = mongoose.connection.readyState; // 0=disconnected 1=connected 2=connecting
+    const db = state === 1 ? 'connected' : state === 2 ? 'connecting' : 'disconnected';
+    let products: number | null = null;
+    if (state === 1) {
+      try {
+        products = await Product.countDocuments().maxTimeMS(2000);
+      } catch {
+        products = null;
+      }
+    }
+    res.status(db === 'connected' ? 200 : 503).json({
+      status: db === 'connected' ? 'ok' : 'degraded',
+      db,
+      products,
+      uptime: process.uptime(),
+      ts: new Date().toISOString(),
+      env: env.NODE_ENV,
+    });
+  };
+  app.get('/health', health);
+  app.get('/api/health', health);
 
   // Rate limiting for the API only (health & docs stay open)
   app.use('/api', (req, res, next) => {

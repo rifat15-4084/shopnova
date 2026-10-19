@@ -1,14 +1,22 @@
 import type { Request } from 'express';
-import { env } from '../config/env.js';
+import { env, isProd } from '../config/env.js';
 import { logger } from '../config/logger.js';
 
 const REFRESH_COOKIE = 'sn_refresh';
 
+/**
+ * Production always ships `Secure` + `SameSite=None` so the refresh cookie
+ * survives the cross-site hop (e.g. Vercel storefront → API host). In
+ * development COOKIE_SECURE=true can still opt in to the strict settings.
+ */
+const cookieSecure = isProd || env.COOKIE_SECURE;
+const cookieSameSite = cookieSecure ? 'none' : 'lax';
+
 export function setRefreshCookie(res: any, token: string) {
   res.cookie(REFRESH_COOKIE, token, {
     httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
+    secure: cookieSecure,
+    sameSite: cookieSameSite,
     path: '/api/auth',
     maxAge: 30 * 24 * 60 * 60 * 1000,
     signed: false,
@@ -18,8 +26,8 @@ export function setRefreshCookie(res: any, token: string) {
 export function clearRefreshCookie(res: any) {
   res.clearCookie(REFRESH_COOKIE, {
     httpOnly: true,
-    secure: env.COOKIE_SECURE,
-    sameSite: env.COOKIE_SECURE ? 'none' : 'lax',
+    secure: cookieSecure,
+    sameSite: cookieSameSite,
     path: '/api/auth',
   });
 }

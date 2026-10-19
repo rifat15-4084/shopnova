@@ -10,6 +10,7 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "seed": "tsx src/seed/index.ts",
+    "seed:prod": "tsx src/seed/index.ts --prod",
     "reseed": "tsx src/seed/index.ts --drop",
     "dev:memory": "tsx scripts/dev-memory-db.ts",
     "test": "vitest run",

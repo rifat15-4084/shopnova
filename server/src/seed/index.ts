@@ -1,8 +1,11 @@
 /* eslint-disable no-console */
 /**
  * ShopNova seed data.
- *   npm run seed          – upsert demo data
- *   npm run reseed        – drop the database first, then seed
+ *   npm run seed          – upsert demo data (local dev)
+ *   npm run reseed        – drop the database first, then seed (local dev)
+ *   npm run seed:prod     – production seed against MONGODB_URI.
+ *                           Refuses to run without SEED_CONFIRM=yes.
+ *                           Add --reset to wipe orders/carts/reviews/users first.
  *
  * Demo accounts:
  *   admin@shopnova.dev   / Admin@12345   (admin)
@@ -19,6 +22,7 @@ import { Product } from '../models/Product.js';
 import { Review } from '../models/Review.js';
 import { Coupon } from '../models/Coupon.js';
 import { Cart } from '../models/Cart.js';
+import { Order } from '../models/Order.js';
 import { slugify } from '../utils/slugify.js';
 
 const unsplash = (photoId: string, w = 800, h = 800) =>
@@ -373,13 +377,61 @@ function pick<T>(arr: T[], i: number): T {
   return arr[i % arr.length];
 }
 
+/** Human-readable, credential-free DB target for logs. */
+function dbTarget(uri: string): string {
+  try {
+    const u = new URL(uri);
+    return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+    return '(unparsable MONGODB_URI)';
+  }
+}
+
 async function seed() {
-  const drop = process.argv.includes('--drop');
-  await connectDB(env.MONGODB_URI);
+  const argv = process.argv.slice(2);
+  const drop = argv.includes('--drop');
+  const prodMode = argv.includes('--prod');
+  const reset = argv.includes('--reset');
+
+  if (prodMode) {
+    if (process.env.SEED_CONFIRM !== 'yes') {
+      console.error('❌ Refusing to seed production data without confirmation.');
+      console.error('   Re-run with the confirmation flag:');
+      console.error('     SEED_CONFIRM=yes npm run seed:prod');
+      console.error('   Add --reset to wipe existing orders, carts, reviews and users first:');
+      console.error('     SEED_CONFIRM=yes npm run seed:prod -- --reset');
+      process.exit(1);
+    }
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      console.error('❌ MONGODB_URI is not set.');
+      console.error(
+        '   seed:prod always connects to MONGODB_URI and never falls back to a local or in-memory database.',
+      );
+      process.exit(1);
+    }
+    if (drop) {
+      console.error('❌ --drop is not allowed with seed:prod (it erases the entire database).');
+      console.error('   Use --reset to wipe orders/users, or run without flags for an additive seed.');
+      process.exit(1);
+    }
+    logger.info(`Seed target: ${dbTarget(uri)}`);
+    await connectDB(uri);
+  } else {
+    await connectDB(env.MONGODB_URI);
+  }
 
   if (drop) {
     logger.warn('Dropping all collections…');
     await mongoose.connection.dropDatabase();
+  } else if (reset) {
+    logger.warn('--reset: deleting ALL orders, carts, reviews and users…');
+    await Promise.all([
+      Order.deleteMany({}),
+      Cart.deleteMany({}),
+      Review.deleteMany({}),
+      User.deleteMany({}),
+    ]);
   }
 
   const passwordHashAdmin = await bcrypt.hash('Admin@12345', 10);
@@ -583,7 +635,11 @@ async function seed() {
   }
   logger.info(`Coupons: ${COUPONS.length}`);
 
-  await Cart.updateMany({}, { $set: { items: [] } });
+  // Local convenience — never clear shoppers' carts from seed:prod
+  // (with --reset the carts were already deleted above).
+  if (!prodMode) {
+    await Cart.updateMany({}, { $set: { items: [] } });
+  }
 
   console.log(''); console.log('[OK] Seed complete.');
   console.log('   > Admin login : admin@shopnova.dev / Admin@12345');

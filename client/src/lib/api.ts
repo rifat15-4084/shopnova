@@ -3,9 +3,9 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from 'axios';
+import { API_BASE } from './config';
 
-export const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+export { API_BASE };
 
 /**
  * Two clients:
@@ -80,6 +80,13 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${token}`;
         return api.request(original);
       }
+    }
+    if (import.meta.env.DEV) {
+      // Development-only diagnostics: show exactly which URL failed.
+      console.error(
+        `[api] ${original?.method?.toUpperCase() ?? 'REQUEST'} ${API_BASE}/api${url} failed`,
+        status ?? error.code ?? error.message,
+      );
     }
     return Promise.reject(error);
   },

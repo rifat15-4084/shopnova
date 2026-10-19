@@ -72,11 +72,12 @@ npm run dev
 | -------- | -------- | ----- |
 | `MONGODB_URI` | yes | e.g. `mongodb://127.0.0.1:27017/shopnova` |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | yes (prod) | dev defaults exist; generate with `openssl rand -base64 32` |
+| `CLIENT_URL` | yes (prod) | Comma-separated allowed CORS origins; wildcards OK, e.g. `http://localhost:5173,https://shop-nava.vercel.app,https://*.vercel.app` |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | for payments | test keys from the Stripe dashboard |
-| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | optional | falls back to local `/uploads` |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | prod: yes | Dev falls back to local `/uploads`; in production uploads fail with `STORAGE_NOT_CONFIGURED` until set |
 | `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` | optional | falls back to a console mail stub |
 
-The client needs no `.env` in development — Vite proxies `/api` to the server automatically.
+The client needs no `.env` in development — without `VITE_API_URL` it calls the local API (`http://localhost:5000`) directly. In production, set `VITE_API_URL` **before** building (see [Deployment troubleshooting](#deployment-troubleshooting)).
 
 ## Scripts
 
@@ -85,6 +86,7 @@ The client needs no `.env` in development — Vite proxies `/api` to the server 
 | `npm run dev` | Run server + client concurrently |
 | `npm run dev:server` / `npm run dev:client` | Run each individually |
 | `npm run seed` | Seed demo data (additive) |
+| `npm run seed:prod` | Production seed — requires `SEED_CONFIRM=yes`, optional `--reset` |
 | `npm run reseed` | Drop and re-seed demo data |
 | `npm run build` | Build server and client for production |
 | `npm start` | Run the built server |
@@ -124,7 +126,7 @@ All endpoints are mounted under `/api`:
 The repo is configured as a single Vercel project serving both apps:
 
 - `vercel.json` builds the `client/` (Vite) as static output and rewrites `/api/*` to the serverless function in `api/index.ts`, which delegates to `server/src/vercel.ts` (the Express app with a per-instance cached MongoDB connection).
-- The frontend calls same-origin `/api/*` — do **not** set `VITE_API_URL` on Vercel.
+- The frontend calls same-origin `/api/*` — do **not** set `VITE_API_URL` on Vercel. (Only if you host the API separately — Render/Railway — set `VITE_API_URL` to that URL **before** the build and add the Vercel origin to the API's `CLIENT_URL`.)
 
 Set these in Vercel → Project → Settings → Environment Variables:
 
@@ -132,11 +134,61 @@ Set these in Vercel → Project → Settings → Environment Variables:
 | -------- | -------- | ----- |
 | `MONGODB_URI` | yes | Must be a cloud database (Atlas free tier works) — Vercel cannot reach `localhost` |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | yes | The server refuses to start in production with the dev defaults; generate with `openssl rand -base64 32` |
-| `COOKIE_SECURE` | recommended | `true` — marks auth cookies `Secure`/`SameSite=None` for HTTPS |
-| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | recommended | Image uploads cannot persist to Vercel's read-only filesystem without Cloudinary |
+| `COOKIE_SECURE` | optional | Production already forces `Secure`/`SameSite=None` cookies — only set this for local HTTPS setups |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | for uploads | Required in production: Vercel's filesystem is read-only, so uploads fail with `STORAGE_NOT_CONFIGURED` until set |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | optional | Payments stay disabled until set |
 
 Then import the GitHub repo at vercel.com/new and deploy — no extra build settings needed.
+
+## Deployment troubleshooting
+
+### Required server environment variables
+
+| Variable | Notes |
+| -------- | ----- |
+| `MONGODB_URI` | Cloud database the API and `seed:prod` connect to; the host must be whitelisted in Atlas network access |
+| `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | `openssl rand -base64 32` — production refuses to boot with the dev defaults |
+| `CLIENT_URL` | Comma-separated allowed CORS origins **including previews**, e.g. `https://shop-nava.vercel.app,https://*.vercel.app` — without this the browser blocks every API response |
+| `NODE_ENV` | `production` on the deployed host (forces `Secure`/`SameSite=None` cookies and Cloudinary-required uploads) |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | Optional — payments stay disabled until set |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Required for image uploads in production; local `/uploads` is dev-only |
+
+### Required client environment variable
+
+- `VITE_API_URL` — base URL of the API, **inlined at build time**. It must be set in the hosting provider **before** the build, and you must **redeploy after changing it** — an already-built bundle keeps the old value. Leave it unset only when the client and API share one origin (the Vercel `/api` rewrite in this repo); in development it falls back to `http://localhost:5000`.
+
+### Seeding a production database
+
+```bash
+# additive — upserts demo users/products/coupons, never deletes orders or users:
+SEED_CONFIRM=yes npm run seed:prod
+
+# full reset — DELETES orders, carts, reviews and users first, then reseeds:
+SEED_CONFIRM=yes npm run seed:prod -- --reset
+```
+
+`seed:prod` always connects to `MONGODB_URI` (it exits if the variable is unset and never falls back to a local or in-memory database), refuses to run without `SEED_CONFIRM=yes`, and rejects `--drop`. Seeded product images are full `https://images.unsplash.com/...` URLs — nothing to migrate.
+
+### Checking a deployed server
+
+```bash
+curl https://<your-api-host>/api/health
+```
+
+```json
+{ "status": "ok", "db": "connected", "products": 48, "uptime": 123.4, "ts": "…", "env": "production" }
+```
+
+- `200` with `"db": "connected"` → healthy; `products` is the catalogue size (`0` means it was never seeded).
+- `503` with `"db": "degraded"` (or Vercel's `DB_UNAVAILABLE` error) → the API cannot reach `MONGODB_URI`.
+
+### Why the storefront shows no products
+
+1. Open the browser console — failed requests are logged there in development as `[api] GET <url> failed`. On the deployed site, `curl https://<api>/api/health` first.
+2. Health is fine but the client fails → `VITE_API_URL` was missing or stale at build time → set it and **redeploy** the client.
+3. Requests fail with CORS errors → the API's `CLIENT_URL` does not include your exact frontend origin (wildcards like `https://*.vercel.app` are supported) → update it and restart the API.
+4. Health returns `"products": 0` → run `SEED_CONFIRM=yes npm run seed:prod` once against `MONGODB_URI`.
+5. Product images broken → set the Cloudinary variables on the API host (production uploads fail fast without them); seed images are remote `https://` URLs and load regardless.
 
 ## License
 
